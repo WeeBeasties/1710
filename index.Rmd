@@ -341,25 +341,31 @@ knitr::kable(newTable, caption="Interpretation of average rubric scores", align=
 
 ## Performance by Course Level {-}
 ```{r level, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by course level. Error bars indicate the 95% confidence intervals."}
-lev_sum <- summarySE(mathDataGender, measurevar="QNT3", groupvars=c("Level"))
+lev_sum <- summarySE(mathData, measurevar="QNT3", groupvars=c("Level"))
 
 ggplot(data = lev_sum, aes(x = Level, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
 	ylim(0, 4) +
 	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
-	geom_text(aes(label=N), vjust=10, color="white", size=4) +
+	geom_text(aes(label=paste("n = ",N)), vjust=10, color="white", size=4) +
 	theme_light()
 ```
 
+```{r ttest2, echo=FALSE, message=FALSE, comment=NA, results='asis'}
+levelResults <- t.test(mathData$QNT3 ~ mathData$Level)
+```
+
+The average rubric scores for 100-level and 200-level courses was `r round(mean(lev_sum$QNT3[1]),2)` and `r round(mean(lev_sum$QNT3[2]),2)`, respectively . Both of these averages are near the threshold value of 2.6. The difference between these scores was not statistically different as evaluated with a two-tailed t-test (t=`r round(levelResults$statistic,2)`, df=`r round(levelResults$parameter,2)`, p=`r format(levelResults$p.value, digits=2)`). The effect size for the difference between was tiny (d=`r round(levelResults$statistic/sqrt(levelResults$parameter),2)`). We can infer from this that there was no evidence of a measurable difference in student performance by course level.
+
 ## Performance by Student Gender {-}
 ```{r gender, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student gender. Error bars indicate the 95% confidence intervals."}
-gen_sum <- summarySE(mathDataGender, measurevar="QNT3", groupvars=c("Gender"))
+gen_sum <- summarySE(mathData, measurevar="QNT3", groupvars=c("Gender"))
 
 ggplot(data = gen_sum, aes(x = Gender, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
 	ylim(0, 4) +
 	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
-	geom_text(aes(label=N), vjust=10, color="white", size=4) +
+	geom_text(aes(label=paste("n = ",N)), vjust=10, color="white", size=4) +
 	theme_light()
 ```
 ## Performance by Student Race {-}
@@ -371,7 +377,7 @@ ggplot(data = race_sum, aes(x = `Race/Ethnicity`, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
 	ylim(0, 4) +
 	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
-	geom_text(aes(label=N), vjust=10, color="white", size=4) +
+	geom_text(aes(label=paste("n = ",N)), vjust=10, color="white", size=4) +
 	theme_light()
 
 ```
@@ -398,7 +404,7 @@ ggplot(data = pell_sum, aes(x = PELL, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
 	ylim(0, 4) +
 	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
-	geom_text(aes(label=N), vjust=10, color="white", size=4) +
+	geom_text(aes(label=paste("n = ",N)), vjust=10, color="white", size=4) +
 	theme_light()
 
 ```
