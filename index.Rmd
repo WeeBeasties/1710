@@ -1,0 +1,395 @@
+--- 
+title: "General Education Report^[Report number 1710, DOI [10.17605/OSF.IO/35GSR](https://doi.org/10.17605/OSF.IO/35GSR)]"
+subtitle: "Quantitative Literacy Outcome QNT3, Fall 2017"
+author: 
+  - "Dr. Clifton Franklund"
+  - "General Education Coordinator"
+date: "Fall 2017"
+output: 
+  bookdown::gitbook:
+    includes:
+      after_body: disqus.html
+description: This report summarizes the student learning on Quantitative Literacy FLO QNT3 for the Fall of 2017.
+documentclass: article
+github-repo: WeeBeasties/1710
+link-citations: yes
+bibliography: references.bib
+site: bookdown::bookdown_site
+biblio-style: apalike
+---
+\addtolength{\headheight}{0.7cm}
+\thispagestyle{fancyplain}
+\lhead{\includegraphics[height=0.5cm]{art/logo.png}}
+\rhead{}
+\renewcommand{\headrulewidth}{0pt}
+
+```{R packages, echo=FALSE, message=FALSE, warning=FALSE}
+
+#----------------------------------------------------------------------------------------
+#	INSTALL PACKAGES
+#----------------------------------------------------------------------------------------
+
+library(tidyverse)      # the tidyverse
+library(pander) 	# code layout
+library(modeest)        # calculate mode
+library(moments)        # calculate skew, kurtosis, etc.
+library(weights)        # calculate weighted t-test
+library(forestplot)     # present meta-analysis
+```
+
+```{R functions, echo=FALSE, message=FALSE, warning=FALSE}
+
+#----------------------------------------------------------------------------------------
+#	DEFINE FUNCTIONS
+#----------------------------------------------------------------------------------------
+
+# Adds legends above figures (used for barplot)
+add_legend <- function(...) {
+  opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+    mar=c(0, 0, 0, 0), new=TRUE)
+  on.exit(par(opar))
+  plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+  legend(...)
+}
+
+#  Computes the variance of a weighted mean following Cochran 1977 definition
+#  Code found online at:
+#  http://stats.stackexchange.com/questions/25895/computing-standard-error-in-weighted-mean-estimation
+weighted.var.se <- function(x, w, na.rm=FALSE)
+	{
+	if (na.rm) { w <- w[i <- !is.na(x)]; x <- x[i] }
+	n = length(w)
+	xWbar = weighted.mean(x,w,na.rm=na.rm)
+	wbar = mean(w)
+	out = sqrt(n/((n-1)*sum(w)^2)*(sum((w*x-wbar*xWbar)^2)-2*xWbar*sum((w-wbar)*(w*x-wbar*xWbar))+xWbar^2*sum((w-wbar)^2)))
+	low = xWbar-(out*1.96)
+	high = xWbar+(out*1.96)
+	myOutput <- c(mean=format(round(xWbar,2),nsmall=2),low=format(round(low,2),nsmall=2),high=format(round(high,2),nsmall=2))
+	return(myOutput)
+}
+
+# Computes omega squared (effect size) for an ANOVA analysis
+omega_sq <- function(aovm){
+    sum_stats <- summary(aovm)[[1]]
+    SSm <- sum_stats[["Sum Sq"]][1]
+    SSr <- sum_stats[["Sum Sq"]][2]
+    DFm <- sum_stats[["Df"]][1]
+    MSr <- sum_stats[["Mean Sq"]][2]
+    W2 <- (SSm-DFm*MSr)/(SSm+SSr+MSr)
+    return(W2)
+}
+
+
+## Summarizes data.
+## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
+##   data: a data frame.
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   groupvars: a vector containing names of columns that contain grouping variables
+##   na.rm: a boolean that indicates whether to ignore NA's
+##   conf.interval: the percent range of the confidence interval (default is 95%)
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
+                      conf.interval=.95, .drop=TRUE) {
+    library(plyr)
+
+    # New version of length which can handle NA's: if na.rm==T, don't count them
+    length2 <- function (x, na.rm=FALSE) {
+        if (na.rm) sum(!is.na(x))
+        else       length(x)
+    }
+
+    # This does the summary. For each group's data frame, return a vector with
+    # N, mean, and sd
+    datac <- ddply(data, groupvars, .drop=.drop,
+      .fun = function(xx, col) {
+        c(N    = length2(xx[[col]], na.rm=na.rm),
+          mean = mean   (xx[[col]], na.rm=na.rm),
+          sd   = sd     (xx[[col]], na.rm=na.rm)
+        )
+      },
+      measurevar
+    )
+
+    # Rename the "mean" column    
+    datac <- rename(datac, c("mean" = measurevar))
+
+    datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+
+    # Confidence interval multiplier for standard error
+    # Calculate t-statistic for confidence interval: 
+    # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+    ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+    datac$ci <- datac$se * ciMult
+
+    return(datac)
+}
+```
+
+```{R data, echo=FALSE, message=FALSE, warning=FALSE}
+
+#----------------------------------------------------------------------------------------
+#	LOAD DATA
+#----------------------------------------------------------------------------------------
+
+mathData <- read_csv("data/mathData.csv")
+mathDataGender <- read_csv("data/mathDataGender.csv")
+dataTable <- read_csv("data/mathDataTable.csv")
+textTable <- read_csv("data/mathTextTable.csv")
+mathDataGender$Level <- as.factor(mathDataGender$Level)
+mathDataGender$`Race/Ethnicity`[mathDataGender$`Race/Ethnicity`=="American Indian/Alaskan Native"] <- "Other"
+mathDataGender$`Race/Ethnicity`[mathDataGender$`Race/Ethnicity`=="Unknown"] <- "Other"
+
+```
+
+# Abstract {#abstract -}
+> "Assessment is not a spreadsheet; it's a conversation."
+> --- Irmeli Halinen
+
+This report is a proof-of-concept for the proposed General Education assessment strategy at Ferris State University. Course-level student assessment data was gathered using TracDat and de-identified using a custom script. The clean and tidy data set was used to generate this report in both PDF and HTML formats with the bookdown package for the R statistical programming language. A total of `r max(mathData$Order)` semesters of student performance on a lecture exam were used to evaluate student competency on Ferris Learning Outcome (FLO) SCI1. A meta-analysis of these data demonstrated that  performance was essentially at the criterion of success. There was substantial variation in enrollment and course performance over the time span examined The utility of reports like these to analyze, distribute, and act up General Education assessment data will be investigated using faculty focus groups in the fall of 2016.
+
+# Introduction {#intro -}
+
+This report is an actual analysis of real course-level assessment data from a 200-level Biology course. However, its primary purpose is to serve as a proof-of-concept for the new General Education assessment process at Ferris State University. Assessment is perhaps best viewed as a scholarly activity that is focused upon programmatic improvement. Such scholarly work should be built upon, and contribute to, the relevant professional literature [@Weimer2015]. To emphasize that reality, this report is formatted in the form of a journal article. This report, and ones like it, will be authored, published, and cited in future work to support the development and improvement of the General Education program at Ferris.
+
+# Methods {#methods -}
+
+## Collection of assessment data {-}
+Student performance on the first lecture exam in a 200-level Biology course was analyzed. The content assessed in all exams was biological diversity. However, the number and format of the questions used varied by semester. Individual student scores were collected using the new General Education Natural Sciences "scores" data workbook for `r max(mathData$Order)` semesters. Student scores were automatically converted to a rubric score by the workbook using the equivalencies shown in Table \@ref(tab:convert).
+
+```{r convert, echo=FALSE, out.width=4}
+Correct <- c("0.0 to 49.0%","50.0 to 59.9%","60.0 to 69.9%","70.0 to 84.9%","85.0 to 100.0%")
+Rubric <- c(0,1,2,3,4)
+Interpretation <- c("Unsatisfactory","Beginning","Developing","Proficient","Advanced")
+tableData <- as.data.frame(cbind(Correct,Rubric,Interpretation))
+colnames(tableData) <- c("Percent Correct","Rubric","Interpretation")
+knitr::kable(tableData, caption="Conversion of percentages to rubric scores", align=c("l","c","r"), booktabs=TRUE)
+
+```
+
+These workbook files contain personally identifiable information (PII) and are, therefore, subject to FERPA regulations. For this reason, they are not directly shared. Instead, they are permanently housed within the Proof_of_Concept folder under Core Competency: Natural Sciences in TracDat.
+
+## De-identification of student data {-}
+Copies of the `r max(mathData$Order)` data files were downloaded from TracDat. An R aggregator script was used to read the data from these data sheets and concatenate it into one data set in a destructive process -- the downloaded copies were deleted in the process. Student names and identification numbers were redacted and each student's entry was given a unique eight-digit identifier - the Record.Key. These keys may be used for longitudinal studies in the future. The algorithm used is kept in an encrypted site and shared with _no one_. The de-identified data set contains `r length(mathData$Order)` student entries and is formatted as a comma-delimited text file (mathData.csv).
+
+## Data provenance {-}
+Data provenance refers to a system that permits tracking of the origin, movement, modification, and utilization of data sets [@Buneman2001]. The provenance of General Education data will be explicitly declared to facilitate the reproducibility and extensibility of these studies.
+
+### Location of public website files {-}
+All files related to this report can be found online at the Open Science Framework [@Nosek2012]. This site contains all of the files needed to reproduce this report from the de-identified data set. The site's url is [https://osf.io/t6u8m/](https://osf.io/t6u8m/).
+
+### Session information {-}
+This report was written using RStudio [@Rstudio] and the R statistical programming language [@R]. These products are free to download for PC, Macintosh, and Linux operating systems. The following information pertains to the session parameters used to generate this report. If you have trouble reproducing this report, it may be due to different session parameters. You may contact [Dr. Franklund](mailto:CliftonFranklund@ferris.edu) if you need assistance.
+
+```{R Session, echo=FALSE, comment=FALSE, error=FALSE, results='asis'}
+pander(sessionInfo())
+```
+
+### Processing instructions {-}
+This project produced a computationally reproducible assessment report (this document). Anyone wishing to recreate this report from the source document will need to install the following on their computer:
+
+1. [An installation of the R programming language](https://www.r-project.org)
+2. [An installation of the RStudio IDE](https://www.rstudio.com/products/rstudio/download3/)
+3. [An installation of LaTeX](https://www.latex-project.org/get/)
+
+The necessary source files include the de-identified data set (BIOL200Data.csv), Rmarkdown code files (index.Rmd, 01-Introduction.Rmd, 02-Methods.Rmd, 03-Results.Rmd, 04-Discussion.Rmd, and 05-References.Rmd), bibtex reference file (references.bib), and custom art file in the /art folder.
+
+To process the files, you must first open the project in RStudio. Click on the "Build Book" button in the Build menu. Bookdown allows you to build this project as git_book (html site), pdf_book (via LaTeX), or epub_book (compatible with iBooks and other e-book readers).
+
+### Citation of this work {-}
+All of the de-identified data, analysis code, and documentation that constitute this report project may be freely used, modified, and shared. The de-identified data set, BIOL200Data.csv, is released under the Creative Commons [CC0 license](https://creativecommons.org/publicdomain/zero/1.0/). All documentation, including README.md, Codebook.md, and this report, are released under the Creative Commons [CC-BY](https://creativecommons.org/licenses/by/4.0/) licence. Any questions, comments, or suggestions may be sent to [Dr. Franklund](mailto:CliftonFranklund@ferris.edu).
+
+# Results {#results -}
+
+This document itself is the primary result of the project. It will be shared with members of the General Education Committee, Academic Senate, and the Department of Mathematics at Ferris State University. Their comments and suggestions will be included in the Discussion.
+
+```{r ttest, echo=FALSE, message=FALSE, comment=NA, results='asis'}
+scoreResults <- t.test(mathData$QNT3, mu=2.6)
+```
+
+## Summary statistics {-}
+A total of `r length(mathData$QNT3)` student performances on Ferris Learning Outcome 3 were collected over `r max(mathData$Order)` different math courses. Student scores were converted to rubric scores as described above. The overall average rubric score for all students and semesters was `r round(mean(mathData$QNT3),2)`. The mode and median scores were `r round(mfv(mathData$QNT3)[1],2)` and `r round(median(mathData$QNT3),2)`, respectively. The average was not statistically different from the threshold score for competence (2.6) as evaluated with a one-value, two-tailed t-test (t=`r round(scoreResults$statistic,2)`, df=`r round(scoreResults$parameter,2)`, p=`r format(scoreResults$p.value, digits=2)`). The effect size for the difference between the average and the threshold was tiny (d=`r round(scoreResults$statistic/sqrt(scoreResults$parameter),2)`). We can infer from this that the overall average rubric score is not practically different than the threshold score.
+
+```{r histogram, echo=FALSE, message=FALSE, results='hide', fig.width=6, fig.align='center', fig.cap="A histogram of the distribution of individual rubric score frequencies over all thirteen semesters."}
+distribution <- table(mathData$QNT3)
+barplot(distribution, ylim=c(0,300), las=1, xlab="", ylab="Overall Frequency", axis.lty = 1, col="firebrick", cex.axis = 0.85, cex.lab = 0.85, cex.names=0.85)
+mtext(side = 1, text = "Rubric Score on QNT3", line = 1.8, cex=0.85)
+```
+
+The distribution of all rubric scores is shown in Figure \@ref(fig:histogram). This distribution exhibited a moderate negative skew (skew = `r round(skewness(mathData$QNT3, na.rm = TRUE),2)`). This result may simply indicate that the teaching, materials, and student learning are all functioning well when the scores are viewed in aggregate. A total of `r sum(mathData$QNT3 >= 3)` students (`r round(sum(mathData$QNT3 >= 3)/length(mathData$QNT3)*100,1)`%) met or exceeded the competence threshold over the semesters investigated. The distribution of rubric scores by course is shown in Figure \@ref(fig:barplot). There are rather obvious differences in both the distribution of rubric scores and class sizes between semesters. 
+
+```{r barplot, echo=FALSE, message=FALSE, fig.cap="A barplot showing the distribution of rubric scores broken down by semester.", fig.width=6, fig.align='center'}
+bySemester <- as.matrix(table(mathData$QNT3,mathData$Order))
+bySemester <- bySemester[,ncol(bySemester):1]
+semesterTotals <- apply(bySemester, 2, sum)
+for(dummy in 1:ncol(bySemester)){
+	bySemester[,dummy] <- bySemester[,dummy]/semesterTotals[dummy]*100
+}
+myLabels <- c(rep("Math 100",18),rep("Math 200",3))
+#col <- c("firebrick","red","yellow","aquamarine","darkgreen")
+col <- c("#a50f15","#de2d26","#fb6a4a","#fcae91","#fee5d9")
+
+par(mar=c(4,8,3,2)+0.1)
+barplot(as.matrix(bySemester),
+	col=col,
+	horiz = TRUE,
+	xlab="",
+	ylab="",
+	names.arg=myLabels,
+	xlim=c(0,100),
+	las=1,
+	cex.axis = 0.75,
+	cex.lab=0.75,
+	cex.names = 0.75)
+mtext("Relative Frequency of Rubric Scores",side=1,line=2, cex = 0.75)
+mtext("Reporting Courses",side=2,line=5, cex = 0.75)
+add_legend("top",                             # Add a legend to the plot
+       legend=c("0","1","2","3","4"),          # Text for the legend
+       fill=col,                               # Fill for boxes of the legend
+       title="Rubric Score",
+       bty="n",
+       cex = 0.75,
+       horiz = TRUE)                           # Fill for boxes of the legend
+```
+
+
+## Meta-analysis {-}
+Meta-analysis of the student performance was performed using R [@TQMP11-1-37]. This analysis resulted in a weighted average of rubric scores. This value was calculated using formula \@ref(eq:weightX). The value $X_{i}$ average rubric scores for the semesters, while $P_{i}$ is the weighting factor (student enrollment).
+
+\begin{equation}
+\bar{X}_w = \frac{\sum X_i P_i}{\sum P_i}
+(\#eq:weightX)
+\end{equation}
+
+The confidence interval for the weighted mean was calculated using the weighted variance. However, the weighted variance is actually not simple to calculate. Several different methods have been compared to bootstrapping [@Gatz1995a]. The most accurate method was initially described by Cochran [@Cochran1977] and that one was used in this study. The calculation to obtain the weighted variance is shown in formula \@ref(eq:weightV).
+
+\begin{equation}
+\begin{split}
+(SEM_w)^2 = \frac{n}{(n-1)(\sum P_i)^2}\big[ \sum(P_i X_i - \bar{P}\bar{X}_w)^2 \\
+- 2\bar{X}_w \sum(P_i - \bar{P})(P_i X_ i - \bar{P} \bar{X}_w) + \bar{X}_w^2 \sum(P_i - \bar{P})^2 \big]
+\end{split}
+(\#eq:weightV)
+\end{equation}
+
+
+```{r forest, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A forest plot of the average scores for each semester with a weighted mean estimate for the entire period investigated. Error bars indicate the 95% confidence intervals."}
+
+align <- c("c","c","c","c","c","c")
+forestplot(textTable, dataTable,
+	   new_page = FALSE,                             # Image on one page
+	   is.summary=c(TRUE,rep(FALSE,21),TRUE),        # Bold for heading and summary lines
+	   boxsize = .3,                                 # Set symbol size
+	   xlog=FALSE,                                   # Linear scale
+	   xticks = c(0,1,1.8,2.6,3.4,4),                        # Ticks at the rubric values
+	   zero = 2.6,                                   # Set threshold value
+	   grid = gpar(lty=3, col="#333333", lwd=1.25),  # Make vertical lines gray dots
+	   xlab = "\nMean rubric score ± 95% CI",        # Label x-axis
+	   #title = "Performance on Scientific Understanding Outcome #1 Based Upon Lecture Exam 1",
+	   align = align,                                # Center all text columns in table
+	   colgap = unit(1, 'mm'),                       # Tighten up the columns
+	   graphwidth = unit(70, 'mm'),                  # Make the plot 80mm wide
+	   graph.pos=ncol(textTable),                    # Move average values after the plot
+	   hrzl_lines = list("1" = gpar(lty=1),          # Add horizontal lines
+		"2" = gpar(lty=1),
+	   	"20" = gpar(lty=1),
+	   	"23" = gpar(lty=1)),
+	   txt_gp = fpTxtGp(label=gpar(cex=.75), xlab = gpar(cex=0.75), ticks = gpar(cex=0.75)),
+	   col=fpColors(box="firebrick",line="black", summary="firebrick", zero="gray50"))
+
+
+```
+
+```{r weightedT, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+averages <- mathData %>%
+	group_by(Order) %>%
+	summarise(n = length(QNT3), mean = mean(QNT3))
+
+weightedT <- wtd.t.test(averages$mean, 2.6, averages$n)
+```
+
+A forest plot of the meta-analysis is shown in Figure \@ref(fig:forest). In this representation, each semester is illustrated as a separate line. The mean and 95% confidence intervals for each semester are plotted in the right panel and their associated meta-data are given in the table to the left. The weighted average of all the data is plotted at the bottom of the figure. The width of the diamond indicates the 95% confidence interval.
+
+The rubric scale can be conceptually divided into five areas as shown in Table \@ref(tab:regions). Of the `r max(mathData$Order)` semesters, `r sum(averages$mean >= 2.6)` fell in the proficient range, `r sum(averages$mean >= 1.8 & averages$mean < 2.6)` fell in the developing range, and `r sum(averages$mean < 1.8)` fell in the beginning range. The weighted mean score was not significantly different from the threshold of competence as judged by a weighted, one-factor, two-tailed t-test (t=`r round(weightedT$coefficients[1],2)`, df=`r weightedT$coefficients[2]`, p=`r round(weightedT$coefficients[3],2)`). We can conclude that the weighted average score is practically equivalent to the competency threshold score.
+
+```{r regions, echo=FALSE, out.width=4}
+Average <- c("0.00 to 0.99","1.00 to 1.79","1.80 to 2.59","2.60 to 3.39","3.40 to 4.00")
+Interpretation <- c("Unsatisfactory","Beginning","Developing","Proficient","Advanced")
+newTable <- as.data.frame(cbind(Average,Interpretation))
+names(newTable) <- c("Average Score","Interpretation")
+knitr::kable(newTable, caption="Interpretation of average rubric scores", align=c("l","r"), booktabs=TRUE)
+```
+
+## Performance by Course Level {-}
+```{r level, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by course level. Error bars indicate the 95% confidence intervals."}
+lev_sum <- summarySE(mathDataGender, measurevar="QNT3", groupvars=c("Level"))
+
+ggplot(data = lev_sum, aes(x = Level, y = QNT3)) +
+	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
+	ylim(0, 4) +
+	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
+	geom_text(aes(label=N), vjust=10, color="white", size=4) +
+	theme_light()
+```
+
+## Performance by Student Gender {-}
+```{r gender, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student gender. Error bars indicate the 95% confidence intervals."}
+gen_sum <- summarySE(mathDataGender, measurevar="QNT3", groupvars=c("Gender"))
+
+ggplot(data = gen_sum, aes(x = Gender, y = QNT3)) +
+	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
+	ylim(0, 4) +
+	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
+	geom_text(aes(label=N), vjust=10, color="white", size=4) +
+	theme_light()
+```
+## Performance by Student Race {-}
+```{r race, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student race. Error bars indicate the 95% confidence intervals."}
+
+race_sum <- summarySE(mathDataGender, measurevar="QNT3", groupvars=c("`Race/Ethnicity`"))
+
+ggplot(data = race_sum, aes(x = `Race/Ethnicity`, y = QNT3)) +
+	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
+	ylim(0, 4) +
+	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
+	geom_text(aes(label=N), vjust=10, color="white", size=4) +
+	theme_light()
+
+```
+
+## Performance by PELL Eligibility {-}
+```{r pell, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student PELL eligibility. Error bars indicate the 95% confidence intervals."}
+
+pell_sum <- summarySE(mathDataGender, measurevar="QNT3", groupvars="PELL")
+
+ggplot(data = pell_sum, aes(x = PELL, y = QNT3)) +
+	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
+	ylim(0, 4) +
+	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
+	geom_text(aes(label=N), vjust=10, color="white", size=4) +
+	theme_light()
+
+```
+
+# Discussion {#discussion -}
+
+A novel approach for the collection, aggregation, analysis, and reporting of General Education assessment data has been developed. Computationally reproducible reports can easily be generated and distributed to improve the program over time. A meta-analysis of data collected from a 200-level Biology course was used as a proof-of-concept.
+
+Over a span of `r max(mathData$Order)` semesters, `r round(sum(averages$mean >= 2.6)/length(averages$mean)*100,1)`% of courses had mean scores considered to be proficient. Of all students in all semesters, `r round(sum(mathData$QNT3 >= 3)/length(mathData$QNT3)*100,1)`% met or exceeded the competence threshold. From these data it is inferred that the students meet (just barely) the threshold of competence.
+
+## Faculty feedback {-}
+This report was distributed to members of the General Education Committee, Academic Senate, and the Department of Biological Sciences.  These individuals were asked to provide their comments, suggestions, and concerns about this report and the processes involved in its creation. A simple SurveyMonkey instrument was developed to gather some feedback. The instrument consisted of the following six questions. The first five questions were five-level Likert scale items (Strongly dislike, Somewhat dislike, Neutral, Somewhat like, and Strongly Like). The format of the final item was free response (short answer).
+
+
+## Plan of action {-}
+After analyzing the data and considering the comments provided in the faculty feedback, the relevant General Education sub-committee members will make one or more recommendations for future work. Some of the possible actions could include:
+
+* No modifications -- continue to gather data
+* Convene a training session to get better inter-course reliability
+* Suggest modifications to the types of assignments that are used
+* Suggest modifications to which data workbooks are used
+* Suggest that instructors consider modifying the scope or sequence of instruction
+* Modify the learning outcomes themselves
+* Modify the competency as a whole
+
+## Acknowledgments {-}
+
+This report was built using Rmarkdown and the bookdown R package. The valuable contributions made by the members of the General Education Committee, Academic Senate, and Department of Biological Sciences are also greatly appreciated.
+
