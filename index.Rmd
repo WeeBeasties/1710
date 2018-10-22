@@ -142,6 +142,7 @@ mathData$`Race/Ethnicity`[mathData$`Race/Ethnicity`=="American Indian/Alaskan Na
 mathData$`Race/Ethnicity`[mathData$`Race/Ethnicity`=="Unknown"] <- "Other"
 mathData$`Race/Ethnicity`[is.na(mathData$`Race/Ethnicity`)] <- "Other"
 mathData$PELL[is.na(mathData$PELL)] <- "N"
+mathData$Gender[is.na(mathData$Gender)] <- "Unreported"
 ```
 
 # Abstract {#abstract -}
@@ -347,7 +348,7 @@ ggplot(data = lev_sum, aes(x = Level, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
 	ylim(0, 4) +
 	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
-	geom_text(aes(label=paste("n = ",N)), vjust=10, color="white", size=4) +
+	geom_text(aes(label=paste("n =",N)), vjust=10, color="white", size=4) +
 	theme_light()
 ```
 
@@ -357,6 +358,34 @@ levelResults <- t.test(mathData$QNT3 ~ mathData$Level)
 
 The average rubric scores for 100-level and 200-level courses was `r round(mean(lev_sum$QNT3[1]),2)` and `r round(mean(lev_sum$QNT3[2]),2)`, respectively . Both of these averages are near the threshold value of 2.6. The difference between these scores was not statistically different as evaluated with a two-tailed t-test (t=`r round(levelResults$statistic,2)`, df=`r round(levelResults$parameter,2)`, p=`r format(levelResults$p.value, digits=2)`). The effect size for the difference between was tiny (d=`r round(levelResults$statistic/sqrt(levelResults$parameter),2)`). We can infer from this that there was no evidence of a measurable difference in student performance by course level.
 
+```{block, type='question'}
+The performance in 200-level students is no better than that of 100-level students. Is this a concern, or are these results expected for these courses? Why or why not?
+```
+
+## Performance by Standard Measure {-}
+```{r measure, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by standard meeasure used. Error bars indicate the 95% confidence intervals."}
+measure_sum <- summarySE(mathData, measurevar="QNT3", groupvars=c("Standard.Measure"))
+
+ggplot(data = measure_sum, aes(x = Standard.Measure, y = QNT3)) +
+	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
+	ylim(0, 4) +
+	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
+	geom_text(aes(label=paste("n =",N)), vjust=10, color="white", size=4) +
+	theme_light()
+```
+
+A one-way ANOVA was used to compare the rubric scores by student gender (Table \@ref(tab:anovameasure)). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different standard measures on the Quantitative Literacy learning outcome.
+
+```{r anovameasure, echo=FALSE, results='asis'}
+myMeasureModel <- lm(QNT3 ~ Standard.Measure, data = mathData)
+
+knitr::kable(anova(myMeasureModel),caption="One-way ANOVA analysis of scores by standard measure used")
+```
+
+```{block, type='question'}
+Do you think that the standard measures used in this cycle are the best ones for the outcome being addressed? Are the results surprising to you?
+```
+
 ## Performance by Student Gender {-}
 ```{r gender, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student gender. Error bars indicate the 95% confidence intervals."}
 gen_sum <- summarySE(mathData, measurevar="QNT3", groupvars=c("Gender"))
@@ -365,9 +394,22 @@ ggplot(data = gen_sum, aes(x = Gender, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
 	ylim(0, 4) +
 	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
-	geom_text(aes(label=paste("n = ",N)), vjust=10, color="white", size=4) +
+	geom_text(aes(label=paste("n =",N)), vjust=10, color="white", size=4) +
 	theme_light()
 ```
+
+A one-way ANOVA was used to compare the rubric scores by student gender (Table \@ref(tab:anovagen)). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different genders on the Quantitative Literacy learning outcome.
+
+```{r anovagen, echo=FALSE, results='asis'}
+myGenModel <- lm(QNT3 ~ Gender, data = mathData)
+
+knitr::kable(anova(myGenModel),caption="One-way ANOVA analysis of scores by self-identified student gender")
+```
+
+```{block, type='question'}
+Do these results seem right to you? Are we reaching all gender groups as well as we ought? Or, do you think that these scores are an anomaly due sampling bias?
+```
+
 ## Performance by Student Race {-}
 ```{r race, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student race. Error bars indicate the 95% confidence intervals."}
 
@@ -377,7 +419,7 @@ ggplot(data = race_sum, aes(x = `Race/Ethnicity`, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
 	ylim(0, 4) +
 	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
-	geom_text(aes(label=paste("n = ",N)), vjust=10, color="white", size=4) +
+	geom_text(aes(label=paste("n =",N)), vjust=10, color="white", size=4) +
 	theme_light()
 
 ```
@@ -404,20 +446,28 @@ ggplot(data = pell_sum, aes(x = PELL, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
 	ylim(0, 4) +
 	geom_errorbar(aes(ymin=QNT3-ci, ymax=QNT3+ci), width=.2) +
-	geom_text(aes(label=paste("n = ",N)), vjust=10, color="white", size=4) +
+	geom_text(aes(label=paste("n =",N)), vjust=10, color="white", size=4) +
 	theme_light()
 
 ```
 
+```{r ttest3, echo=FALSE, message=FALSE, comment=NA, results='asis'}
+pellResults <- t.test(mathData$QNT3 ~ mathData$PELL)
+```
+
+The average rubric scores for Pell-eligible and non-Pell-eligible students was `r round(mean(pell_sum$QNT3[2]),2)` and `r round(mean(pell_sum$QNT3[1]),2)`, respectively. Both of these averages are slightly above the threshold value of 2.6. The difference between these scores was not statistically different as evaluated with a two-tailed t-test (t=`r round(pellResults$statistic,2)`, df=`r round(pellResults$parameter,2)`, p=`r format(pellResults$p.value, digits=2)`). The effect size for the difference between was tiny (d=`r round(pellResults$statistic/sqrt(pellResults$parameter),2)`). We can infer from this that there was no evidence of a measurable difference in student performance by Pell eligibility.
+
+```{block, type='question'}
+The performance of Pell-eligible students is no worse than that of those that are not. Is this a surprise, or are these results expected for these courses? Why or why not?
+```
+
 # Discussion {#discussion -}
 
-A novel approach for the collection, aggregation, analysis, and reporting of General Education assessment data has been developed. Computationally reproducible reports can easily be generated and distributed to improve the program over time. A meta-analysis of data collected from a 200-level Biology course was used as a proof-of-concept.
-
-Over a span of `r max(mathData$Order)` semesters, `r round(sum(averages$mean >= 2.6)/length(averages$mean)*100,1)`% of courses had mean scores considered to be proficient. Of all students in all semesters, `r round(sum(mathData$QNT3 >= 3)/length(mathData$QNT3)*100,1)`% met or exceeded the competence threshold. From these data it is inferred that the students meet (just barely) the threshold of competence.
+A novel approach for the collection, aggregation, analysis, and reporting of General Education assessment data has been developed. Computationally reproducible reports can easily be generated and distributed to improve the program over time. A meta-analysis of data collected for the first time from a selection of Mathematics courses. 
+Over a total of `r max(mathData$Order)` courses, `r round(sum(averages$mean >= 2.6)/length(averages$mean)*100,1)`% had mean scores considered to be proficient. Of all students in all semesters, `r round(sum(mathData$QNT3 >= 3)/length(mathData$QNT3)*100,1)`% met or exceeded the competence threshold. From these data it is inferred that the students are about at the threshold of competence. Disaggregation of scores by standard measure employed, course level, student race, student gender, and Pell eligibility all failed to find any significant differences in student performance.
 
 ## Faculty feedback {-}
-This report was distributed to members of the General Education Committee, Academic Senate, and the Department of Biological Sciences.  These individuals were asked to provide their comments, suggestions, and concerns about this report and the processes involved in its creation. A simple SurveyMonkey instrument was developed to gather some feedback. The instrument consisted of the following six questions. The first five questions were five-level Likert scale items (Strongly dislike, Somewhat dislike, Neutral, Somewhat like, and Strongly Like). The format of the final item was free response (short answer).
-
+This report has been distributed to members of the General Education Committee, Academic Senate, and the Department of Mathematics at Ferris State Univerity.  These individuals were asked to provide their comments, suggestions, and concerns about this report and the processes involved in its creation. Their reflections are captured in the Disqus comments within this report. Summary of their ideas and action steps will eventually be included in an Addendum section to this report.
 
 ## Plan of action {-}
 After analyzing the data and considering the comments provided in the faculty feedback, the relevant General Education sub-committee members will make one or more recommendations for future work. Some of the possible actions could include:

@@ -82,6 +82,7 @@
 <li class="chapter" data-level="" data-path="results.html"><a href="results.html#summary-statistics"><i class="fa fa-check"></i>Summary statistics</a></li>
 <li class="chapter" data-level="" data-path="results.html"><a href="results.html#meta-analysis"><i class="fa fa-check"></i>Meta-analysis</a></li>
 <li class="chapter" data-level="" data-path="results.html"><a href="results.html#performance-by-course-level"><i class="fa fa-check"></i>Performance by Course Level</a></li>
+<li class="chapter" data-level="" data-path="results.html"><a href="results.html#performance-by-standard-measure"><i class="fa fa-check"></i>Performance by Standard Measure</a></li>
 <li class="chapter" data-level="" data-path="results.html"><a href="results.html#performance-by-student-gender"><i class="fa fa-check"></i>Performance by Student Gender</a></li>
 <li class="chapter" data-level="" data-path="results.html"><a href="results.html#performance-by-student-race"><i class="fa fa-check"></i>Performance by Student Race</a></li>
 <li class="chapter" data-level="" data-path="results.html"><a href="results.html#performance-by-pell-eligibility"><i class="fa fa-check"></i>Performance by PELL Eligibility</a></li>
@@ -217,13 +218,101 @@ Figure 4: A comparison of student performance on QNT3 by course level. Error bar
 </p>
 </div>
 <p>The average rubric scores for 100-level and 200-level courses was 2.73 and 2.53, respectively . Both of these averages are near the threshold value of 2.6. The difference between these scores was not statistically different as evaluated with a two-tailed t-test (t=1.49, df=205.41, p=0.14). The effect size for the difference between was tiny (d=0.1). We can infer from this that there was no evidence of a measurable difference in student performance by course level.</p>
+<div class="question">
+<p>
+The performance in 200-level students is no better than that of 100-level students. Is this a concern, or are these results expected for these courses? Why or why not?
+</p>
+</div>
+</div>
+<div id="performance-by-standard-measure" class="section level2 unnumbered">
+<h2>Performance by Standard Measure</h2>
+<div class="figure"><span id="fig:measure"></span>
+<img src="Report-1710_files/figure-html/measure-1.png" alt="A comparison of student performance on QNT3 by standard meeasure used. Error bars indicate the 95% confidence intervals." width="672" />
+<p class="caption">
+Figure 5: A comparison of student performance on QNT3 by standard meeasure used. Error bars indicate the 95% confidence intervals.
+</p>
+</div>
+<p>A one-way ANOVA was used to compare the rubric scores by student gender (Table <a href="results.html#tab:anovameasure">3</a>). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different standard measures on the Quantitative Literacy learning outcome.</p>
+<table>
+<caption><span id="tab:anovameasure">Table 3: </span>One-way ANOVA analysis of scores by standard measure used</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="right">Df</th>
+<th align="right">Sum Sq</th>
+<th align="right">Mean Sq</th>
+<th align="right">F value</th>
+<th align="right">Pr(&gt;F)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Standard.Measure</td>
+<td align="right">3</td>
+<td align="right">10.70376</td>
+<td align="right">3.567919</td>
+<td align="right">1.864508</td>
+<td align="right">0.1341432</td>
+</tr>
+<tr class="even">
+<td>Residuals</td>
+<td align="right">744</td>
+<td align="right">1423.71736</td>
+<td align="right">1.913599</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
+</table>
+<div class="question">
+<p>
+Do you think that the standard measures used in this cycle are the best ones for the outcome being addressed? Are the results surprising to you?
+</p>
+</div>
 </div>
 <div id="performance-by-student-gender" class="section level2 unnumbered">
 <h2>Performance by Student Gender</h2>
 <div class="figure"><span id="fig:gender"></span>
 <img src="Report-1710_files/figure-html/gender-1.png" alt="A comparison of student performance on QNT3 by student gender. Error bars indicate the 95% confidence intervals." width="672" />
 <p class="caption">
-Figure 5: A comparison of student performance on QNT3 by student gender. Error bars indicate the 95% confidence intervals.
+Figure 6: A comparison of student performance on QNT3 by student gender. Error bars indicate the 95% confidence intervals.
+</p>
+</div>
+<p>A one-way ANOVA was used to compare the rubric scores by student gender (Table <a href="results.html#tab:anovagen">4</a>). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different genders on the Quantitative Literacy learning outcome.</p>
+<table>
+<caption><span id="tab:anovagen">Table 4: </span>One-way ANOVA analysis of scores by self-identified student gender</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th align="right">Df</th>
+<th align="right">Sum Sq</th>
+<th align="right">Mean Sq</th>
+<th align="right">F value</th>
+<th align="right">Pr(&gt;F)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Gender</td>
+<td align="right">2</td>
+<td align="right">8.681903</td>
+<td align="right">4.340952</td>
+<td align="right">2.268303</td>
+<td align="right">0.1042019</td>
+</tr>
+<tr class="even">
+<td>Residuals</td>
+<td align="right">745</td>
+<td align="right">1425.739220</td>
+<td align="right">1.913744</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+</tbody>
+</table>
+<div class="question">
+<p>
+Do these results seem right to you? Are we reaching all gender groups as well as we ought? Or, do you think that these scores are an anomaly due sampling bias?
 </p>
 </div>
 </div>
@@ -232,12 +321,12 @@ Figure 5: A comparison of student performance on QNT3 by student gender. Error b
 <div class="figure"><span id="fig:race"></span>
 <img src="Report-1710_files/figure-html/race-1.png" alt="A comparison of student performance on QNT3 by student race. Error bars indicate the 95% confidence intervals." width="672" />
 <p class="caption">
-Figure 6: A comparison of student performance on QNT3 by student race. Error bars indicate the 95% confidence intervals.
+Figure 7: A comparison of student performance on QNT3 by student race. Error bars indicate the 95% confidence intervals.
 </p>
 </div>
-<p>A one-way ANOVA was used to compare the rubric scores by student race (Table <a href="results.html#tab:anova">3</a>). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different races on the Quantitative Literacy learning outcome. Note however, that the sample size for most races other than “white” are rather small yet.</p>
+<p>A one-way ANOVA was used to compare the rubric scores by student race (Table <a href="results.html#tab:anova">5</a>). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different races on the Quantitative Literacy learning outcome. Note however, that the sample size for most races other than “white” are rather small yet.</p>
 <table>
-<caption><span id="tab:anova">Table 3: </span>One-way ANOVA analysis of scores by student race</caption>
+<caption><span id="tab:anova">Table 5: </span>One-way ANOVA analysis of scores by student race</caption>
 <thead>
 <tr class="header">
 <th></th>
@@ -278,7 +367,13 @@ Do these results seem right to you? Are we reaching all minority groups as well 
 <div class="figure"><span id="fig:pell"></span>
 <img src="Report-1710_files/figure-html/pell-1.png" alt="A comparison of student performance on QNT3 by student PELL eligibility. Error bars indicate the 95% confidence intervals." width="672" />
 <p class="caption">
-Figure 7: A comparison of student performance on QNT3 by student PELL eligibility. Error bars indicate the 95% confidence intervals.
+Figure 8: A comparison of student performance on QNT3 by student PELL eligibility. Error bars indicate the 95% confidence intervals.
+</p>
+</div>
+<p>The average rubric scores for Pell-eligible and non-Pell-eligible students was 2.76 and 2.65, respectively. Both of these averages are slightly above the threshold value of 2.6. The difference between these scores was not statistically different as evaluated with a two-tailed t-test (t=-1.09, df=629.54, p=0.28). The effect size for the difference between was tiny (d=-0.04). We can infer from this that there was no evidence of a measurable difference in student performance by Pell eligibility.</p>
+<div class="question">
+<p>
+The performance of Pell-eligible students is no worse than that of those that are not. Is this a surprise, or are these results expected for these courses? Why or why not?
 </p>
 </div>
 </div>
