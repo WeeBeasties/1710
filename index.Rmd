@@ -137,7 +137,11 @@ textTable <- read_csv("data/mathTextTable.csv")
 mathDataGender$Level <- as.factor(mathDataGender$Level)
 mathDataGender$`Race/Ethnicity`[mathDataGender$`Race/Ethnicity`=="American Indian/Alaskan Native"] <- "Other"
 mathDataGender$`Race/Ethnicity`[mathDataGender$`Race/Ethnicity`=="Unknown"] <- "Other"
-
+mathData$Level <- as.factor(mathData$Level)
+mathData$`Race/Ethnicity`[mathData$`Race/Ethnicity`=="American Indian/Alaskan Native"] <- "Other"
+mathData$`Race/Ethnicity`[mathData$`Race/Ethnicity`=="Unknown"] <- "Other"
+mathData$`Race/Ethnicity`[is.na(mathData$`Race/Ethnicity`)] <- "Other"
+mathData$PELL[is.na(mathData$PELL)] <- "N"
 ```
 
 # Abstract {#abstract -}
@@ -361,7 +365,7 @@ ggplot(data = gen_sum, aes(x = Gender, y = QNT3)) +
 ## Performance by Student Race {-}
 ```{r race, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student race. Error bars indicate the 95% confidence intervals."}
 
-race_sum <- summarySE(mathDataGender, measurevar="QNT3", groupvars=c("`Race/Ethnicity`"))
+race_sum <- summarySE(mathData, measurevar="QNT3", groupvars=c("`Race/Ethnicity`"))
 
 ggplot(data = race_sum, aes(x = `Race/Ethnicity`, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
@@ -372,10 +376,23 @@ ggplot(data = race_sum, aes(x = `Race/Ethnicity`, y = QNT3)) +
 
 ```
 
+A one-way ANOVA was used to compare the rubric scores by student race (Table \@ref(tab:anova)). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different races on the Quantitative Literacy learning outcome. Note however, that the sample size for most races other than "white" are rather small yet.
+
+```{r anova, echo=FALSE, results='asis'}
+myModel <- lm(QNT3 ~ `Race/Ethnicity`, data = mathData)
+
+knitr::kable(anova(myModel),caption="One-way ANOVA analysis of scores by student race")
+```
+
+```{block, type='question'}
+Do these results seem right to you? Are we reaching all minority groups as well as we ought? Or, do you think that these scores are an anomaly due to the small sample sizes?
+```
+
+
 ## Performance by PELL Eligibility {-}
 ```{r pell, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student PELL eligibility. Error bars indicate the 95% confidence intervals."}
 
-pell_sum <- summarySE(mathDataGender, measurevar="QNT3", groupvars="PELL")
+pell_sum <- summarySE(mathData, measurevar="QNT3", groupvars="PELL")
 
 ggplot(data = pell_sum, aes(x = PELL, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
