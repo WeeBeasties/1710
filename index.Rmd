@@ -208,13 +208,24 @@ scoreResults <- t.test(mathData$QNT3, mu=2.6)
 ## Summary statistics {-}
 A total of `r length(mathData$QNT3)` student performances on Ferris Learning Outcome 3 were collected over `r max(mathData$Order)` different math courses. Student scores were converted to rubric scores as described above. The overall average rubric score for all students and semesters was `r round(mean(mathData$QNT3),2)`. The mode and median scores were `r round(mfv(mathData$QNT3)[1],2)` and `r round(median(mathData$QNT3),2)`, respectively. The average was not statistically different from the threshold score for competence (2.6) as evaluated with a one-value, two-tailed t-test (t=`r round(scoreResults$statistic,2)`, df=`r round(scoreResults$parameter,2)`, p=`r format(scoreResults$p.value, digits=2)`). The effect size for the difference between the average and the threshold was tiny (d=`r round(scoreResults$statistic/sqrt(scoreResults$parameter),2)`). We can infer from this that the overall average rubric score is not practically different than the threshold score.
 
+```{block, type='question'}
+Do you think that this level of performance on the outcome is sufficient? Or, do you think that there is a need to increase this level?
+```
+
+
 ```{r histogram, echo=FALSE, message=FALSE, results='hide', fig.width=6, fig.align='center', fig.cap="A histogram of the distribution of individual rubric score frequencies over all thirteen semesters."}
 distribution <- table(mathData$QNT3)
 barplot(distribution, ylim=c(0,300), las=1, xlab="", ylab="Overall Frequency", axis.lty = 1, col="firebrick", cex.axis = 0.85, cex.lab = 0.85, cex.names=0.85)
 mtext(side = 1, text = "Rubric Score on QNT3", line = 1.8, cex=0.85)
 ```
 
-The distribution of all rubric scores is shown in Figure \@ref(fig:histogram). This distribution exhibited a moderate negative skew (skew = `r round(skewness(mathData$QNT3, na.rm = TRUE),2)`). This result may simply indicate that the teaching, materials, and student learning are all functioning well when the scores are viewed in aggregate. A total of `r sum(mathData$QNT3 >= 3)` students (`r round(sum(mathData$QNT3 >= 3)/length(mathData$QNT3)*100,1)`%) met or exceeded the competence threshold over the semesters investigated. The distribution of rubric scores by course is shown in Figure \@ref(fig:barplot). There are rather obvious differences in both the distribution of rubric scores and class sizes between semesters. 
+The distribution of all rubric scores is shown in Figure \@ref(fig:histogram). This distribution exhibited a moderate negative skew (skew = `r round(skewness(mathData$QNT3, na.rm = TRUE),2)`). This result may simply indicate that the teaching, materials, and student learning are all functioning well when the scores are viewed in aggregate. A total of `r sum(mathData$QNT3 >= 3)` students (`r round(sum(mathData$QNT3 >= 3)/length(mathData$QNT3)*100,1)`%) met or exceeded the competence threshold over the semesters investigated. 
+
+```{block, type='question'}
+Do you think that this distribution of rubric scores seems right? Are there too many ones and fours, or is this distribution expected in these courses?
+```
+
+The distribution of rubric scores by course is shown in Figure \@ref(fig:barplot). There are rather obvious differences in both the distribution of rubric scores and class sizes between semesters. 
 
 ```{r barplot, echo=FALSE, message=FALSE, fig.cap="A barplot showing the distribution of rubric scores broken down by semester.", fig.width=6, fig.align='center'}
 bySemester <- as.matrix(table(mathData$QNT3,mathData$Order))
@@ -250,6 +261,9 @@ add_legend("top",                             # Add a legend to the plot
        horiz = TRUE)                           # Fill for boxes of the legend
 ```
 
+```{block, type='question'}
+What do you think accounts for the variability in scoring from course to course. Is this a problem in measurement, or does the variation reflect real differences in the course populations?
+```
 
 ## Meta-analysis {-}
 Meta-analysis of the student performance was performed using R [@TQMP11-1-37]. This analysis resulted in a weighted average of rubric scores. This value was calculated using formula \@ref(eq:weightX). The value $X_{i}$ average rubric scores for the semesters, while $P_{i}$ is the weighting factor (student enrollment).
@@ -306,6 +320,10 @@ weightedT <- wtd.t.test(averages$mean, 2.6, averages$n)
 ```
 
 A forest plot of the meta-analysis is shown in Figure \@ref(fig:forest). In this representation, each semester is illustrated as a separate line. The mean and 95% confidence intervals for each semester are plotted in the right panel and their associated meta-data are given in the table to the left. The weighted average of all the data is plotted at the bottom of the figure. The width of the diamond indicates the 95% confidence interval.
+
+```{block, type='question'}
+Do you think that this reflects the actual status of student performance in these courses? 
+```
 
 The rubric scale can be conceptually divided into five areas as shown in Table \@ref(tab:regions). Of the `r max(mathData$Order)` semesters, `r sum(averages$mean >= 2.6)` fell in the proficient range, `r sum(averages$mean >= 1.8 & averages$mean < 2.6)` fell in the developing range, and `r sum(averages$mean < 1.8)` fell in the beginning range. The weighted mean score was not significantly different from the threshold of competence as judged by a weighted, one-factor, two-tailed t-test (t=`r round(weightedT$coefficients[1],2)`, df=`r weightedT$coefficients[2]`, p=`r round(weightedT$coefficients[3],2)`). We can conclude that the weighted average score is practically equivalent to the competency threshold score.
 
