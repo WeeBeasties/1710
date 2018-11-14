@@ -31,7 +31,6 @@ biblio-style: apalike
 
 library(tidyverse)      # the tidyverse
 library(pander) 	# code layout
-library(modeest)        # calculate mode
 library(moments)        # calculate skew, kurtosis, etc.
 library(weights)        # calculate weighted t-test
 library(forestplot)     # present meta-analysis
@@ -42,6 +41,12 @@ library(forestplot)     # present meta-analysis
 #----------------------------------------------------------------------------------------
 #	DEFINE FUNCTIONS
 #----------------------------------------------------------------------------------------
+
+# Calculate mode
+myMode <- function(x) {
+  ux <- unique(x)
+  ux[which.max(tabulate(match(x, ux)))]
+}
 
 # Adds legends above figures (used for barplot)
 add_legend <- function(...) {
@@ -129,27 +134,53 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 #----------------------------------------------------------------------------------------
 #	LOAD DATA
 #----------------------------------------------------------------------------------------
+reportData <- read_csv("data/mathData.csv")
+reportData$Gender[is.na(reportData$Gender)] <- "Unreported"
+reportData$QNT1 <- as.numeric(reportData$QNT1)
+reportData$QNT2 <- as.numeric(reportData$QNT2)
+reportData$QNT3 <- as.numeric(reportData$QNT3)
+reportData$QNT4 <- as.numeric(reportData$QNT4)
+reportData <- reportData %>% 
+	filter(!is.na(QNT3))
+reportData$Semester <- "Fall 2017"
 
-mathData <- read_csv("data/mathData.csv")
-mathDataGender <- read_csv("data/mathDataGender.csv")
-dataTable <- read_csv("data/mathDataTable.csv")
-textTable <- read_csv("data/mathTextTable.csv")
-mathDataGender$Level <- as.factor(mathDataGender$Level)
-mathDataGender$`Race/Ethnicity`[mathDataGender$`Race/Ethnicity`=="American Indian/Alaskan Native"] <- "Other"
-mathDataGender$`Race/Ethnicity`[mathDataGender$`Race/Ethnicity`=="Unknown"] <- "Other"
-mathData$Level <- as.factor(mathData$Level)
-mathData$`Race/Ethnicity`[mathData$`Race/Ethnicity`=="American Indian/Alaskan Native"] <- "Other"
-mathData$`Race/Ethnicity`[mathData$`Race/Ethnicity`=="Unknown"] <- "Other"
-mathData$`Race/Ethnicity`[is.na(mathData$`Race/Ethnicity`)] <- "Other"
-mathData$PELL[is.na(mathData$PELL)] <- "N"
-mathData$Gender[is.na(mathData$Gender)] <- "Unreported"
+reportDataGender <- reportData %>% filter(!is.na(Gender))
+reportDataGender$Level <- as.factor(reportDataGender$Level)
+reportDataGender$`Race/Ethnicity`[reportDataGender$`Race/Ethnicity`=="American Indian/Alaskan Native"] <- "Other"
+reportDataGender$`Race/Ethnicity`[reportDataGender$`Race/Ethnicity`=="Unknown"] <- "Other"
+
+reportDataTable <- reportData %>%
+	group_by(Order) %>%
+	summarise(Prefix = Prefix[1], Level = Level[1], n = length(QNT3), mean = mean(QNT3), lower = mean(QNT3)-(1.96*sd(QNT3)/sqrt(length(QNT3))), upper = mean(QNT3)+(1.96*sd(QNT3)/sqrt(length(QNT3)))) %>%
+	arrange(Level, Prefix) %>%
+	select(n, mean, lower, upper)
+reportDataTable$Order <- NULL
+myWeighted <- weighted.var.se(reportDataTable$mean,reportDataTable$n)
+reportDataTable$n <- NULL
+reportDataTable <- rbind(reportDataTable,myWeighted)
+nullHeadings <- c(NA,NA,NA)
+reportDataTable <- rbind(nullHeadings,reportDataTable)
+
+reportTextTable <- reportData %>%
+	group_by(Order) %>%
+	summarise(Semester = Semester[1], Prefix = Prefix[1], Level = Level[1], Outcome = "QNT3", N = length(QNT3), Mean = format(round(mean(QNT3),digits=2),nsmall=2)) %>%
+	arrange(Level, Prefix)
+reportTextTable$Order <- NULL
+reportTextTable$Semester <- as.character(reportTextTable$Semester)
+reportTextTable$Prefix <- as.character(reportTextTable$Prefix)
+reportTextTable$Level <- as.character(reportTextTable$Level)
+headings <- c("Semester","Prefix","Level","Outcome","N","Mean")
+reportTextTable <- rbind(headings,reportTextTable)
+reportTextTable$Semester <- "Fall 2017"
+theSummary <- c("Weighted average",NA,NA,NA,NA,myWeighted)
+reportTextTable <- rbind(reportTextTable,theSummary)
 ```
 
 # Abstract {#abstract -}
 > "Assessment is not a spreadsheet; it's a conversation."
 > --- Irmeli Halinen
 
-This report is a proof-of-concept for the proposed General Education assessment strategy at Ferris State University. Course-level student assessment data was gathered using TracDat and de-identified using a custom script. The clean and tidy data set was used to generate this report in both PDF and HTML formats with the bookdown package for the R statistical programming language. A total of `r max(mathData$Order)` semesters of student performance on a lecture exam were used to evaluate student competency on Ferris Learning Outcome (FLO) SCI1. A meta-analysis of these data demonstrated that  performance was essentially at the criterion of success. There was substantial variation in enrollment and course performance over the time span examined The utility of reports like these to analyze, distribute, and act up General Education assessment data will be investigated using faculty focus groups in the fall of 2016.
+This report is a proof-of-concept for the proposed General Education assessment strategy at Ferris State University. Course-level student assessment data was gathered using TracDat and de-identified using a custom script. The clean and tidy data set was used to generate this report in both PDF and HTML formats with the bookdown package for the R statistical programming language. A total of `r max(reportData$Order)` semesters of student performance on a lecture exam were used to evaluate student competency on Ferris Learning Outcome (FLO) SCI1. A meta-analysis of these data demonstrated that  performance was essentially at the criterion of success. There was substantial variation in enrollment and course performance over the time span examined The utility of reports like these to analyze, distribute, and act up General Education assessment data will be investigated using faculty focus groups in the fall of 2016.
 
 # Introduction {#intro -}
 
@@ -158,7 +189,7 @@ This report is an actual analysis of real course-level assessment data from a 20
 # Methods {#methods -}
 
 ## Collection of assessment data {-}
-Student performance on the first lecture exam in a 200-level Biology course was analyzed. The content assessed in all exams was biological diversity. However, the number and format of the questions used varied by semester. Individual student scores were collected using the new General Education Natural Sciences "scores" data workbook for `r max(mathData$Order)` semesters. Student scores were automatically converted to a rubric score by the workbook using the equivalencies shown in Table \@ref(tab:convert).
+Student performance on the first lecture exam in a 200-level Biology course was analyzed. The content assessed in all exams was biological diversity. However, the number and format of the questions used varied by semester. Individual student scores were collected using the new General Education Natural Sciences "scores" data workbook for `r max(reportData$Order)` semesters. Student scores were automatically converted to a rubric score by the workbook using the equivalencies shown in Table \@ref(tab:convert).
 
 ```{r convert, echo=FALSE, out.width=4}
 Correct <- c("0.0 to 49.0%","50.0 to 59.9%","60.0 to 69.9%","70.0 to 84.9%","85.0 to 100.0%")
@@ -173,7 +204,7 @@ knitr::kable(tableData, caption="Conversion of percentages to rubric scores", al
 These workbook files contain personally identifiable information (PII) and are, therefore, subject to FERPA regulations. For this reason, they are not directly shared. Instead, they are permanently housed within the Proof_of_Concept folder under Core Competency: Natural Sciences in TracDat.
 
 ## De-identification of student data {-}
-Copies of the `r max(mathData$Order)` data files were downloaded from TracDat. An R aggregator script was used to read the data from these data sheets and concatenate it into one data set in a destructive process -- the downloaded copies were deleted in the process. Student names and identification numbers were redacted and each student's entry was given a unique eight-digit identifier - the Record.Key. These keys may be used for longitudinal studies in the future. The algorithm used is kept in an encrypted site and shared with _no one_. The de-identified data set contains `r length(mathData$Order)` student entries and is formatted as a comma-delimited text file (mathData.csv).
+Copies of the `r max(reportData$Order)` data files were downloaded from TracDat. An R aggregator script was used to read the data from these data sheets and concatenate it into one data set in a destructive process -- the downloaded copies were deleted in the process. Student names and identification numbers were redacted and each student's entry was given a unique eight-digit identifier - the Record.Key. These keys may be used for longitudinal studies in the future. The algorithm used is kept in an encrypted site and shared with _no one_. The de-identified data set contains `r length(reportData$Order)` student entries and is formatted as a comma-delimited text file (reportData.csv).
 
 ## Data provenance {-}
 Data provenance refers to a system that permits tracking of the origin, movement, modification, and utilization of data sets [@Buneman2001]. The provenance of General Education data will be explicitly declared to facilitate the reproducibility and extensibility of these studies.
@@ -207,11 +238,11 @@ All of the de-identified data, analysis code, and documentation that constitute 
 This document itself is the primary result of the project. It will be shared with members of the General Education Committee, Academic Senate, and the Department of Mathematics at Ferris State University. Their comments and suggestions will be included in the Discussion.
 
 ```{r ttest, echo=FALSE, message=FALSE, comment=NA, results='asis'}
-scoreResults <- t.test(mathData$QNT3, mu=2.6)
+scoreResults <- t.test(reportData$QNT3, mu=2.6)
 ```
 
 ## Summary statistics {-}
-A total of `r length(mathData$QNT3)` student performances on Ferris Learning Outcome 3 were collected over `r max(mathData$Order)` different math courses. Student scores were converted to rubric scores as described above. The overall average rubric score for all students and semesters was `r round(mean(mathData$QNT3),2)`. The mode and median scores were `r round(mfv(mathData$QNT3)[1],2)` and `r round(median(mathData$QNT3),2)`, respectively. The average was not statistically different from the threshold score for competence (2.6) as evaluated with a one-value, two-tailed t-test (t=`r round(scoreResults$statistic,2)`, df=`r round(scoreResults$parameter,2)`, p=`r format(scoreResults$p.value, digits=2)`). The effect size for the difference between the average and the threshold was tiny (d=`r round(scoreResults$statistic/sqrt(scoreResults$parameter),2)`). We can infer from this that the overall average rubric score is not practically different than the threshold score. A total of 31 courses were initially registered to submit data for the semester, so we achieved a 67.7% completion rate. According to Banner records, 1,997 students were enrolled in Quantitative Literacy courses in the fall semester. We captured 37.5% of this population with our census.
+A total of `r length(reportData$QNT3)` student performances on Ferris Learning Outcome 3 were collected over `r max(reportData$Order)` different math courses. Student scores were converted to rubric scores as described above. The overall average rubric score for all students and semesters was `r round(mean(reportData$QNT3),2)`. The mode and median scores were `r round(myMode(reportData$QNT3)[1],2)` and `r round(median(reportData$QNT3),2)`, respectively. The average was not statistically different from the threshold score for competence (2.6) as evaluated with a one-value, two-tailed t-test (t=`r round(scoreResults$statistic,2)`, df=`r round(scoreResults$parameter,2)`, p=`r format(scoreResults$p.value, digits=2)`). The effect size for the difference between the average and the threshold was tiny (d=`r round(scoreResults$statistic/sqrt(scoreResults$parameter),2)`). We can infer from this that the overall average rubric score is not practically different than the threshold score. A total of 31 courses were initially registered to submit data for the semester, so we achieved a 67.7% completion rate. According to Banner records, 1,997 students were enrolled in Quantitative Literacy courses in the fall semester. We captured 37.5% of this population with our census.
 
 ```{block, type='question'}
 Do you think that this level of performance on the outcome is sufficient? Or, do you think that there is a need to increase this level?
@@ -219,12 +250,12 @@ Do you think that this level of performance on the outcome is sufficient? Or, do
 
 
 ```{r histogram, echo=FALSE, message=FALSE, results='hide', fig.width=6, fig.align='center', fig.cap="A histogram of the distribution of individual rubric score frequencies over all thirteen semesters."}
-distribution <- table(mathData$QNT3)
+distribution <- table(reportData$QNT3)
 barplot(distribution, ylim=c(0,300), las=1, xlab="", ylab="Overall Frequency", axis.lty = 1, col="firebrick", cex.axis = 0.85, cex.lab = 0.85, cex.names=0.85)
 mtext(side = 1, text = "Rubric Score on QNT3", line = 1.8, cex=0.85)
 ```
 
-The distribution of all rubric scores is shown in Figure \@ref(fig:histogram). This distribution exhibited a moderate negative skew (skew = `r round(skewness(mathData$QNT3, na.rm = TRUE),2)`). This result may simply indicate that the teaching, materials, and student learning are all functioning well when the scores are viewed in aggregate. A total of `r sum(mathData$QNT3 >= 3)` students (`r round(sum(mathData$QNT3 >= 3)/length(mathData$QNT3)*100,1)`%) met or exceeded the competence threshold over the semesters investigated. 
+The distribution of all rubric scores is shown in Figure \@ref(fig:histogram). This distribution exhibited a moderate negative skew (skew = `r round(skewness(reportData$QNT3, na.rm = TRUE),2)`). This result may simply indicate that the teaching, materials, and student learning are all functioning well when the scores are viewed in aggregate. A total of `r sum(reportData$QNT3 >= 3)` students (`r round(sum(reportData$QNT3 >= 3)/length(reportData$QNT3)*100,1)`%) met or exceeded the competence threshold over the semesters investigated. 
 
 ```{block, type='question'}
 Do you think that this distribution of rubric scores seems right? Are there too many ones and fours, or is this distribution expected in these courses?
@@ -233,7 +264,7 @@ Do you think that this distribution of rubric scores seems right? Are there too 
 The distribution of rubric scores by course is shown in Figure \@ref(fig:barplot). There are rather obvious differences in both the distribution of rubric scores and class sizes between semesters. 
 
 ```{r barplot, echo=FALSE, message=FALSE, fig.cap="A barplot showing the distribution of rubric scores broken down by semester.", fig.width=6, fig.align='center'}
-bySemester <- as.matrix(table(mathData$QNT3,mathData$Order))
+bySemester <- as.matrix(table(reportData$QNT3,reportData$Order))
 bySemester <- bySemester[,ncol(bySemester):1]
 semesterTotals <- apply(bySemester, 2, sum)
 for(dummy in 1:ncol(bySemester)){
@@ -292,7 +323,7 @@ The confidence interval for the weighted mean was calculated using the weighted 
 ```{r forest, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A forest plot of the average scores for each semester with a weighted mean estimate for the entire period investigated. Error bars indicate the 95% confidence intervals."}
 
 align <- c("c","c","c","c","c","c")
-forestplot(textTable, dataTable,
+forestplot(reportTextTable, reportDataTable,
 	   new_page = FALSE,                             # Image on one page
 	   is.summary=c(TRUE,rep(FALSE,21),TRUE),        # Bold for heading and summary lines
 	   boxsize = .3,                                 # Set symbol size
@@ -305,7 +336,7 @@ forestplot(textTable, dataTable,
 	   align = align,                                # Center all text columns in table
 	   colgap = unit(1, 'mm'),                       # Tighten up the columns
 	   graphwidth = unit(70, 'mm'),                  # Make the plot 80mm wide
-	   graph.pos=ncol(textTable),                    # Move average values after the plot
+	   graph.pos=ncol(reportTextTable),                    # Move average values after the plot
 	   hrzl_lines = list("1" = gpar(lty=1),          # Add horizontal lines
 		"2" = gpar(lty=1),
 	   	"20" = gpar(lty=1),
@@ -317,7 +348,7 @@ forestplot(textTable, dataTable,
 ```
 
 ```{r weightedT, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
-averages <- mathData %>%
+averages <- reportData %>%
 	group_by(Order) %>%
 	summarise(n = length(QNT3), mean = mean(QNT3))
 
@@ -330,7 +361,7 @@ A forest plot of the meta-analysis is shown in Figure \@ref(fig:forest). In this
 Do you think that this reflects the actual status of student performance in these courses? 
 ```
 
-The rubric scale can be conceptually divided into five areas as shown in Table \@ref(tab:regions). Of the `r max(mathData$Order)` semesters, `r sum(averages$mean >= 2.6)` fell in the proficient range, `r sum(averages$mean >= 1.8 & averages$mean < 2.6)` fell in the developing range, and `r sum(averages$mean < 1.8)` fell in the beginning range. The weighted mean score was not significantly different from the threshold of competence as judged by a weighted, one-factor, two-tailed t-test (t=`r round(weightedT$coefficients[1],2)`, df=`r weightedT$coefficients[2]`, p=`r round(weightedT$coefficients[3],2)`). We can conclude that the weighted average score is practically equivalent to the competency threshold score.
+The rubric scale can be conceptually divided into five areas as shown in Table \@ref(tab:regions). Of the `r max(reportData$Order)` semesters, `r sum(averages$mean >= 2.6)` fell in the proficient range, `r sum(averages$mean >= 1.8 & averages$mean < 2.6)` fell in the developing range, and `r sum(averages$mean < 1.8)` fell in the beginning range. The weighted mean score was not significantly different from the threshold of competence as judged by a weighted, one-factor, two-tailed t-test (t=`r round(weightedT$coefficients[1],2)`, df=`r weightedT$coefficients[2]`, p=`r round(weightedT$coefficients[3],2)`). We can conclude that the weighted average score is practically equivalent to the competency threshold score.
 
 ```{r regions, echo=FALSE, out.width=4}
 Average <- c("0.00 to 0.99","1.00 to 1.79","1.80 to 2.59","2.60 to 3.39","3.40 to 4.00")
@@ -342,7 +373,7 @@ knitr::kable(newTable, caption="Interpretation of average rubric scores", align=
 
 ## Performance by Course Level {-}
 ```{r level, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by course level. Error bars indicate the 95% confidence intervals."}
-lev_sum <- summarySE(mathData, measurevar="QNT3", groupvars=c("Level"))
+lev_sum <- summarySE(reportData, measurevar="QNT3", groupvars=c("Level"))
 
 ggplot(data = lev_sum, aes(x = Level, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
@@ -353,7 +384,7 @@ ggplot(data = lev_sum, aes(x = Level, y = QNT3)) +
 ```
 
 ```{r ttest2, echo=FALSE, message=FALSE, comment=NA, results='asis'}
-levelResults <- t.test(mathData$QNT3 ~ mathData$Level)
+levelResults <- t.test(reportData$QNT3 ~ reportData$Level)
 ```
 
 The average rubric scores for 100-level and 200-level courses was `r round(mean(lev_sum$QNT3[1]),2)` and `r round(mean(lev_sum$QNT3[2]),2)`, respectively . Both of these averages are near the threshold value of 2.6. The difference between these scores was not statistically different as evaluated with a two-tailed t-test (t=`r round(levelResults$statistic,2)`, df=`r round(levelResults$parameter,2)`, p=`r format(levelResults$p.value, digits=2)`). The effect size for the difference between was tiny (d=`r round(levelResults$statistic/sqrt(levelResults$parameter),2)`). We can infer from this that there was no evidence of a measurable difference in student performance by course level.
@@ -364,7 +395,7 @@ The performance in 200-level students is no better than that of 100-level studen
 
 ## Performance by Standard Measure {-}
 ```{r measure, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by standard meeasure used. Error bars indicate the 95% confidence intervals."}
-measure_sum <- summarySE(mathData, measurevar="QNT3", groupvars=c("Standard.Measure"))
+measure_sum <- summarySE(reportData, measurevar="QNT3", groupvars=c("Standard.Measure"))
 
 ggplot(data = measure_sum, aes(x = Standard.Measure, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
@@ -377,7 +408,7 @@ ggplot(data = measure_sum, aes(x = Standard.Measure, y = QNT3)) +
 A one-way ANOVA was used to compare the rubric scores by student gender (Table \@ref(tab:anovameasure)). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different standard measures on the Quantitative Literacy learning outcome.
 
 ```{r anovameasure, echo=FALSE, results='asis'}
-myMeasureModel <- lm(QNT3 ~ Standard.Measure, data = mathData)
+myMeasureModel <- lm(QNT3 ~ Standard.Measure, data = reportData)
 
 knitr::kable(anova(myMeasureModel),caption="One-way ANOVA analysis of scores by standard measure used")
 ```
@@ -388,7 +419,7 @@ Do you think that the standard measures used in this cycle are the best ones for
 
 ## Performance by Student Gender {-}
 ```{r gender, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student gender. Error bars indicate the 95% confidence intervals."}
-gen_sum <- summarySE(mathData, measurevar="QNT3", groupvars=c("Gender"))
+gen_sum <- summarySE(reportData, measurevar="QNT3", groupvars=c("Gender"))
 
 ggplot(data = gen_sum, aes(x = Gender, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
@@ -401,7 +432,7 @@ ggplot(data = gen_sum, aes(x = Gender, y = QNT3)) +
 A one-way ANOVA was used to compare the rubric scores by student gender (Table \@ref(tab:anovagen)). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different genders on the Quantitative Literacy learning outcome.
 
 ```{r anovagen, echo=FALSE, results='asis'}
-myGenModel <- lm(QNT3 ~ Gender, data = mathData)
+myGenModel <- lm(QNT3 ~ Gender, data = reportData)
 
 knitr::kable(anova(myGenModel),caption="One-way ANOVA analysis of scores by self-identified student gender")
 ```
@@ -413,7 +444,7 @@ Do these results seem right to you? Are we reaching all gender groups as well as
 ## Performance by Student Race {-}
 ```{r race, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student race. Error bars indicate the 95% confidence intervals."}
 
-race_sum <- summarySE(mathData, measurevar="QNT3", groupvars=c("`Race/Ethnicity`"))
+race_sum <- summarySE(reportData, measurevar="QNT3", groupvars=c("`Race/Ethnicity`"))
 
 ggplot(data = race_sum, aes(x = `Race/Ethnicity`, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
@@ -427,7 +458,7 @@ ggplot(data = race_sum, aes(x = `Race/Ethnicity`, y = QNT3)) +
 A one-way ANOVA was used to compare the rubric scores by student race (Table \@ref(tab:anova)). There was not a statistically significant difference between the student scores. So, there is currently no evidence to suggest that there is a difference between students of different races on the Quantitative Literacy learning outcome. Note however, that the sample size for most races other than "white" are rather small yet.
 
 ```{r anova, echo=FALSE, results='asis'}
-myModel <- lm(QNT3 ~ `Race/Ethnicity`, data = mathData)
+myModel <- lm(QNT3 ~ `Race/Ethnicity`, data = reportData)
 
 knitr::kable(anova(myModel),caption="One-way ANOVA analysis of scores by student race")
 ```
@@ -440,7 +471,7 @@ Do these results seem right to you? Are we reaching all minority groups as well 
 ## Performance by PELL Eligibility {-}
 ```{r pell, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student PELL eligibility. Error bars indicate the 95% confidence intervals."}
 
-pell_sum <- summarySE(mathData, measurevar="QNT3", groupvars="PELL")
+pell_sum <- summarySE(reportData, measurevar="QNT3", groupvars="PELL")
 
 ggplot(data = pell_sum, aes(x = PELL, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
@@ -452,7 +483,7 @@ ggplot(data = pell_sum, aes(x = PELL, y = QNT3)) +
 ```
 
 ```{r ttest3, echo=FALSE, message=FALSE, comment=NA, results='asis'}
-pellResults <- t.test(mathData$QNT3 ~ mathData$PELL)
+pellResults <- t.test(reportData$QNT3 ~ reportData$PELL)
 ```
 
 The average rubric scores for Pell-eligible and non-Pell-eligible students was `r round(mean(pell_sum$QNT3[2]),2)` and `r round(mean(pell_sum$QNT3[1]),2)`, respectively. Both of these averages are slightly above the threshold value of 2.6. The difference between these scores was not statistically different as evaluated with a two-tailed t-test (t=`r round(pellResults$statistic,2)`, df=`r round(pellResults$parameter,2)`, p=`r format(pellResults$p.value, digits=2)`). The effect size for the difference between was tiny (d=`r round(pellResults$statistic/sqrt(pellResults$parameter),2)`). We can infer from this that there was no evidence of a measurable difference in student performance by Pell eligibility.
@@ -464,7 +495,7 @@ The performance of Pell-eligible students is no worse than that of those that ar
 # Discussion {#discussion -}
 
 A novel approach for the collection, aggregation, analysis, and reporting of General Education assessment data has been developed. Computationally reproducible reports can easily be generated and distributed to improve the program over time. A meta-analysis of data collected for the first time from a selection of Mathematics courses. 
-Over a total of `r max(mathData$Order)` courses, `r round(sum(averages$mean >= 2.6)/length(averages$mean)*100,1)`% had mean scores considered to be proficient. Of all students in all semesters, `r round(sum(mathData$QNT3 >= 3)/length(mathData$QNT3)*100,1)`% met or exceeded the competence threshold. From these data it is inferred that the students are about at the threshold of competence. Disaggregation of scores by standard measure employed, course level, student race, student gender, and Pell eligibility all failed to find any significant differences in student performance.
+Over a total of `r max(reportData$Order)` courses, `r round(sum(averages$mean >= 2.6)/length(averages$mean)*100,1)`% had mean scores considered to be proficient. Of all students in all semesters, `r round(sum(reportData$QNT3 >= 3)/length(reportData$QNT3)*100,1)`% met or exceeded the competence threshold. From these data it is inferred that the students are about at the threshold of competence. Disaggregation of scores by standard measure employed, course level, student race, student gender, and Pell eligibility all failed to find any significant differences in student performance.
 
 ## Faculty feedback {-}
 This report has been distributed to members of the General Education Committee, Academic Senate, and the Department of Mathematics at Ferris State Univerity.  These individuals were asked to provide their comments, suggestions, and concerns about this report and the processes involved in its creation. Their reflections are captured in the Disqus comments within this report. Summary of their ideas and action steps will eventually be included in an Addendum section to this report.
