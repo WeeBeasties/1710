@@ -135,7 +135,7 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 #	LOAD DATA
 #----------------------------------------------------------------------------------------
 reportData <- read_csv("data/mathData.csv")
-reportData$Gender[is.na(reportData$Gender)] <- "Unreported"
+reportData$Gender[is.na(reportData$Gender)] <- "NA"
 reportData$QNT1 <- as.numeric(reportData$QNT1)
 reportData$QNT2 <- as.numeric(reportData$QNT2)
 reportData$QNT3 <- as.numeric(reportData$QNT3)
@@ -148,6 +148,7 @@ reportDataGender <- reportData %>% filter(!is.na(Gender))
 reportDataGender$Level <- as.factor(reportDataGender$Level)
 reportDataGender$`Race/Ethnicity`[reportDataGender$`Race/Ethnicity`=="American Indian/Alaskan Native"] <- "Other"
 reportDataGender$`Race/Ethnicity`[reportDataGender$`Race/Ethnicity`=="Unknown"] <- "Other"
+reportDataGender$`Race/Ethnicity`[is.na(reportDataGender$`Race/Ethnicity`)] <- "Other"
 
 reportDataTable <- reportData %>%
 	group_by(Order) %>%
@@ -419,7 +420,7 @@ Do you think that the standard measures used in this cycle are the best ones for
 
 ## Performance by Student Gender {-}
 ```{r gender, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student gender. Error bars indicate the 95% confidence intervals."}
-gen_sum <- summarySE(reportData, measurevar="QNT3", groupvars=c("Gender"))
+gen_sum <- summarySE(reportDataGender, measurevar="QNT3", groupvars=c("Gender"))
 
 ggplot(data = gen_sum, aes(x = Gender, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
@@ -444,7 +445,7 @@ Do these results seem right to you? Are we reaching all gender groups as well as
 ## Performance by Student Race {-}
 ```{r race, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.cap="A comparison of student performance on QNT3 by student race. Error bars indicate the 95% confidence intervals."}
 
-race_sum <- summarySE(reportData, measurevar="QNT3", groupvars=c("`Race/Ethnicity`"))
+race_sum <- summarySE(reportDataGender, measurevar="QNT3", groupvars=c("`Race/Ethnicity`"))
 
 ggplot(data = race_sum, aes(x = `Race/Ethnicity`, y = QNT3)) +
 	geom_bar(stat = "summary", fun.y = "mean", fill="firebrick") +
