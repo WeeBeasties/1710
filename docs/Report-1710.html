@@ -126,17 +126,17 @@
 <blockquote>
 <p>“Assessment is not a spreadsheet; it’s a conversation.” — Irmeli Halinen</p>
 </blockquote>
-<p>This report is a proof-of-concept for the proposed General Education assessment strategy at Ferris State University. Course-level student assessment data was gathered using TracDat and de-identified using a custom script. The clean and tidy data set was used to generate this report in both PDF and HTML formats with the bookdown package for the R statistical programming language. A total of 21 semesters of student performance on a lecture exam were used to evaluate student competency on Ferris Learning Outcome (FLO) SCI1. A meta-analysis of these data demonstrated that performance was essentially at the criterion of success. There was substantial variation in enrollment and course performance over the time span examined The utility of reports like these to analyze, distribute, and act up General Education assessment data will be investigated using faculty focus groups in the fall of 2016.</p>
+<p>This report is the first quantitative literacy analysis for the new General Education assessment strategy at Ferris State University. A total of 748 student performances on Ferris Learning Outcome 3 were collected over 21 different math courses. Student scores were converted to rubric scores as described above. The overall average rubric score for all students and semesters was 2.69. The mode and median scores were 4 and 3, respectively. The average was not statistically different from the threshold score for competence (2.6) as evaluated with a one-value, two-tailed t-test (t=1.75, df=747, p=0.081). The effect size for the difference between the average and the threshold was tiny (d=0.06). We can infer from this that the overall average rubric score is not practically different than the threshold score. A total of 31 courses were initially registered to submit data for the semester, so we achieved a 67.7% completion rate. According to Banner records, 1,997 students were enrolled in Quantitative Literacy courses in the fall semester. We captured 37.5% of this population with our census.</p>
 </div>
 <div id="intro" class="section level1 unnumbered">
 <h1>Introduction</h1>
-<p>This report is an actual analysis of real course-level assessment data from a 200-level Biology course. However, its primary purpose is to serve as a proof-of-concept for the new General Education assessment process at Ferris State University. Assessment is perhaps best viewed as a scholarly activity that is focused upon programmatic improvement. Such scholarly work should be built upon, and contribute to, the relevant professional literature <span class="citation">(Weimer <a href="#ref-Weimer2015">2015</a>)</span>. To emphasize that reality, this report is formatted in the form of a journal article. This report, and ones like it, will be authored, published, and cited in future work to support the development and improvement of the General Education program at Ferris.</p>
+<p>Assessment is perhaps best viewed as a scholarly activity that is focused upon programmatic improvement. Such scholarly work should be built upon, and contribute to, the relevant professional literature <span class="citation">(Weimer <a href="#ref-Weimer2015">2015</a>)</span>. To emphasize that reality, this report is formatted in the form of a journal article. This report, and ones like it, will be authored, published, and cited in future work to support the development and improvement of the General Education program at Ferris. In addition, reports like this will be the focus of presentations to faculty to suppport continuous improvement of student learning. This report is an analysis of course-level assessment data from 100- and 200-level Math courses in the Fall of 2017. Twenty-one different embedded course assignments were used to evaluate our students’ abilities with regard to quantitative literacy outcome QNT3: Apply approaches – Students apply quantitative approaches within contexts to solve problems and draw plausible conclusions.</p>
 </div>
 <div id="methods" class="section level1 unnumbered">
 <h1>Methods</h1>
 <div id="collection-of-assessment-data" class="section level2 unnumbered">
 <h2>Collection of assessment data</h2>
-<p>Student performance on the first lecture exam in a 200-level Biology course was analyzed. The content assessed in all exams was biological diversity. However, the number and format of the questions used varied by semester. Individual student scores were collected using the new General Education Natural Sciences “scores” data workbook for 21 semesters. Student scores were automatically converted to a rubric score by the workbook using the equivalencies shown in Table <a href="#tab:convert">1</a>.</p>
+<p>Student performances on embedded assignments in 100- and 200-level mathematics courses were analyzed. The content assessed probably varied considerabley. However, all assignments presumably aligned with the QNT3 learning outcome. Individual student scores were collected using the new General Education Natural Sciences “scores” data workbook . Student scores were automatically converted to a rubric score by the workbook using the equivalencies shown in Table <a href="#tab:convert">1</a>.</p>
 <table>
 <caption><span id="tab:convert">Table 1: </span>Conversion of percentages to rubric scores</caption>
 <thead>
@@ -174,11 +174,11 @@
 </tr>
 </tbody>
 </table>
-<p>These workbook files contain personally identifiable information (PII) and are, therefore, subject to FERPA regulations. For this reason, they are not directly shared. Instead, they are permanently housed within the Proof_of_Concept folder under Core Competency: Natural Sciences in TracDat.</p>
+<p>These workbook files contain personally identifiable information (PII) and are, therefore, subject to FERPA regulations. For this reason, they are not directly shared. Instead, they are permanently housed within the 2017-08 folder under Core Competency: Natural Sciences in TracDat.</p>
 </div>
 <div id="de-identification-of-student-data" class="section level2 unnumbered">
 <h2>De-identification of student data</h2>
-<p>Copies of the 21 data files were downloaded from TracDat. An R aggregator script was used to read the data from these data sheets and concatenate it into one data set in a destructive process – the downloaded copies were deleted in the process. Student names and identification numbers were redacted and each student’s entry was given a unique eight-digit identifier - the Record.Key. These keys may be used for longitudinal studies in the future. The algorithm used is kept in an encrypted site and shared with <em>no one</em>. The de-identified data set contains 748 student entries and is formatted as a comma-delimited text file (mathData.csv).</p>
+<p>Copies of the 21 data files were downloaded from TracDat. An R aggregator script was used to read the data from these data sheets and concatenate it into one data set in a destructive process – the downloaded copies were deleted in the process. Student names and identification numbers were redacted and each student’s entry was given a unique eight-digit identifier - the Record.Key. These keys may be used for longitudinal studies in the future. The algorithm used is kept in an encrypted site and shared with <em>no one</em>. The de-identified data set contains 748 student entries and is formatted as a comma-delimited text file (reportData.csv).</p>
 </div>
 <div id="data-provenance" class="section level2 unnumbered">
 <h2>Data provenance</h2>
@@ -194,8 +194,8 @@
 <p>**<a href="Platform:**" class="uri">Platform:**</a> x86_64-apple-darwin15.6.0 (64-bit)</p>
 <p><strong>locale:</strong> en_US.UTF-8||en_US.UTF-8||en_US.UTF-8||C||en_US.UTF-8||en_US.UTF-8</p>
 <p><strong>attached base packages:</strong> <em>grid</em>, <em>stats</em>, <em>graphics</em>, <em>grDevices</em>, <em>utils</em>, <em>datasets</em>, <em>methods</em> and <em>base</em></p>
-<p><strong>other attached packages:</strong> <em>forestplot(v.1.7.2)</em>, <em>checkmate(v.1.8.5)</em>, <em>magrittr(v.1.5)</em>, <em>weights(v.1.0)</em>, <em>mice(v.3.3.0)</em>, <em>gdata(v.2.18.0)</em>, <em>Hmisc(v.4.1-1)</em>, <em>Formula(v.1.2-3)</em>, <em>survival(v.2.42-6)</em>, <em>lattice(v.0.20-35)</em>, <em>moments(v.0.14)</em>, <em>modeest(v.2.1)</em>, <em>pander(v.0.6.2)</em>, <em>forcats(v.0.3.0)</em>, <em>stringr(v.1.3.1)</em>, <em>dplyr(v.0.7.6)</em>, <em>purrr(v.0.2.5)</em>, <em>readr(v.1.1.1)</em>, <em>tidyr(v.0.8.1)</em>, <em>tibble(v.1.4.2)</em>, <em>ggplot2(v.3.0.0)</em> and <em>tidyverse(v.1.2.1)</em></p>
-<p><strong>loaded via a namespace (and not attached):</strong> <em>httr(v.1.3.1)</em>, <em>jsonlite(v.1.5)</em>, <em>splines(v.3.5.1)</em>, <em>modelr(v.0.1.2)</em>, <em>gtools(v.3.8.1)</em>, <em>assertthat(v.0.2.0)</em>, <em>highr(v.0.7)</em>, <em>latticeExtra(v.0.6-28)</em>, <em>cellranger(v.1.1.0)</em>, <em>yaml(v.2.2.0)</em>, <em>pillar(v.1.3.0)</em>, <em>backports(v.1.1.2)</em>, <em>glue(v.1.3.0)</em>, <em>digest(v.0.6.17)</em>, <em>RColorBrewer(v.1.1-2)</em>, <em>minqa(v.1.2.4)</em>, <em>rvest(v.0.3.2)</em>, <em>colorspace(v.1.3-2)</em>, <em>htmltools(v.0.3.6)</em>, <em>Matrix(v.1.2-14)</em>, <em>plyr(v.1.8.4)</em>, <em>pkgconfig(v.2.0.2)</em>, <em>broom(v.0.5.0)</em>, <em>haven(v.1.1.2)</em>, <em>bookdown(v.0.7)</em>, <em>scales(v.1.0.0)</em>, <em>lme4(v.1.1-18-1)</em>, <em>htmlTable(v.1.12)</em>, <em>withr(v.2.1.2)</em>, <em>pan(v.1.6)</em>, <em>nnet(v.7.3-12)</em>, <em>lazyeval(v.0.2.1)</em>, <em>cli(v.1.0.0)</em>, <em>crayon(v.1.3.4)</em>, <em>readxl(v.1.1.0)</em>, <em>mitml(v.0.3-6)</em>, <em>evaluate(v.0.11)</em>, <em>nlme(v.3.1-137)</em>, <em>MASS(v.7.3-50)</em>, <em>xml2(v.1.2.0)</em>, <em>foreign(v.0.8-71)</em>, <em>tools(v.3.5.1)</em>, <em>data.table(v.1.11.8)</em>, <em>hms(v.0.4.2)</em>, <em>munsell(v.0.5.0)</em>, <em>cluster(v.2.0.7-1)</em>, <em>bindrcpp(v.0.2.2)</em>, <em>compiler(v.3.5.1)</em>, <em>rlang(v.0.2.2)</em>, <em>nloptr(v.1.2.1)</em>, <em>rstudioapi(v.0.7)</em>, <em>htmlwidgets(v.1.3)</em>, <em>base64enc(v.0.1-3)</em>, <em>rmarkdown(v.1.10)</em>, <em>gtable(v.0.2.0)</em>, <em>R6(v.2.2.2)</em>, <em>gridExtra(v.2.3)</em>, <em>lubridate(v.1.7.4)</em>, <em>knitr(v.1.20)</em>, <em>bindr(v.0.1.1)</em>, <em>jomo(v.2.6-4)</em>, <em>rprojroot(v.1.3-2)</em>, <em>stringi(v.1.2.4)</em>, <em>parallel(v.3.5.1)</em>, <em>Rcpp(v.0.12.18)</em>, <em>rpart(v.4.1-13)</em>, <em>acepack(v.1.4.1)</em>, <em>tidyselect(v.0.2.4)</em> and <em>xfun(v.0.3)</em></p>
+<p><strong>other attached packages:</strong> <em>bindrcpp(v.0.2.2)</em>, <em>forestplot(v.1.7.2)</em>, <em>checkmate(v.1.8.5)</em>, <em>magrittr(v.1.5)</em>, <em>weights(v.1.0)</em>, <em>mice(v.3.3.0)</em>, <em>gdata(v.2.18.0)</em>, <em>Hmisc(v.4.1-1)</em>, <em>Formula(v.1.2-3)</em>, <em>survival(v.2.43-1)</em>, <em>lattice(v.0.20-38)</em>, <em>moments(v.0.14)</em>, <em>pander(v.0.6.3)</em>, <em>forcats(v.0.3.0)</em>, <em>stringr(v.1.3.1)</em>, <em>dplyr(v.0.7.8)</em>, <em>purrr(v.0.2.5)</em>, <em>readr(v.1.1.1)</em>, <em>tidyr(v.0.8.2)</em>, <em>tibble(v.1.4.2)</em>, <em>ggplot2(v.3.1.0)</em> and <em>tidyverse(v.1.2.1)</em></p>
+<p><strong>loaded via a namespace (and not attached):</strong> <em>httr(v.1.3.1)</em>, <em>jsonlite(v.1.6)</em>, <em>splines(v.3.5.1)</em>, <em>modelr(v.0.1.2)</em>, <em>gtools(v.3.8.1)</em>, <em>assertthat(v.0.2.0)</em>, <em>highr(v.0.7)</em>, <em>latticeExtra(v.0.6-28)</em>, <em>cellranger(v.1.1.0)</em>, <em>yaml(v.2.2.0)</em>, <em>pillar(v.1.3.0)</em>, <em>backports(v.1.1.2)</em>, <em>glue(v.1.3.0)</em>, <em>digest(v.0.6.18)</em>, <em>RColorBrewer(v.1.1-2)</em>, <em>rvest(v.0.3.2)</em>, <em>minqa(v.1.2.4)</em>, <em>colorspace(v.1.3-2)</em>, <em>htmltools(v.0.3.6)</em>, <em>Matrix(v.1.2-15)</em>, <em>plyr(v.1.8.4)</em>, <em>pkgconfig(v.2.0.2)</em>, <em>broom(v.0.5.0)</em>, <em>haven(v.1.1.2)</em>, <em>bookdown(v.0.7)</em>, <em>scales(v.1.0.0)</em>, <em>lme4(v.1.1-19)</em>, <em>htmlTable(v.1.12)</em>, <em>withr(v.2.1.2)</em>, <em>pan(v.1.6)</em>, <em>nnet(v.7.3-12)</em>, <em>lazyeval(v.0.2.1)</em>, <em>cli(v.1.0.1)</em>, <em>crayon(v.1.3.4)</em>, <em>readxl(v.1.1.0)</em>, <em>mitml(v.0.3-6)</em>, <em>evaluate(v.0.12)</em>, <em>nlme(v.3.1-137)</em>, <em>MASS(v.7.3-51.1)</em>, <em>xml2(v.1.2.0)</em>, <em>foreign(v.0.8-71)</em>, <em>tools(v.3.5.1)</em>, <em>data.table(v.1.11.8)</em>, <em>hms(v.0.4.2)</em>, <em>munsell(v.0.5.0)</em>, <em>cluster(v.2.0.7-1)</em>, <em>compiler(v.3.5.1)</em>, <em>rlang(v.0.3.0.1)</em>, <em>nloptr(v.1.2.1)</em>, <em>rstudioapi(v.0.8)</em>, <em>htmlwidgets(v.1.3)</em>, <em>base64enc(v.0.1-3)</em>, <em>rmarkdown(v.1.11)</em>, <em>gtable(v.0.2.0)</em>, <em>R6(v.2.3.0)</em>, <em>gridExtra(v.2.3)</em>, <em>lubridate(v.1.7.4)</em>, <em>knitr(v.1.21)</em>, <em>bindr(v.0.1.1)</em>, <em>jomo(v.2.6-5)</em>, <em>stringi(v.1.2.4)</em>, <em>parallel(v.3.5.1)</em>, <em>Rcpp(v.1.0.0)</em>, <em>rpart(v.4.1-13)</em>, <em>acepack(v.1.4.1)</em>, <em>tidyselect(v.0.2.5)</em> and <em>xfun(v.0.4)</em></p>
 </div>
 <div id="processing-instructions" class="section level3 unnumbered">
 <h3>Processing instructions</h3>
@@ -226,9 +226,9 @@ Do you think that this level of performance on the outcome is sufficient? Or, do
 </p>
 </div>
 <div class="figure" style="text-align: center"><span id="fig:histogram"></span>
-<img src="Report-1710_files/figure-html/histogram-1.png" alt="A histogram of the distribution of individual rubric score frequencies over all thirteen semesters." width="576" />
+<img src="Report-1710_files/figure-html/histogram-1.png" alt="A histogram of the distribution of individual rubric score frequencies over all 21 reports." width="576" />
 <p class="caption">
-Figure 1: A histogram of the distribution of individual rubric score frequencies over all thirteen semesters.
+Figure 1: A histogram of the distribution of individual rubric score frequencies over all 21 reports.
 </p>
 </div>
 <p>The distribution of all rubric scores is shown in Figure <a href="#fig:histogram">1</a>. This distribution exhibited a moderate negative skew (skew = -0.86). This result may simply indicate that the teaching, materials, and student learning are all functioning well when the scores are viewed in aggregate. A total of 502 students (67.1%) met or exceeded the competence threshold over the semesters investigated.</p>
@@ -239,9 +239,9 @@ Do you think that this distribution of rubric scores seems right? Are there too 
 </div>
 <p>The distribution of rubric scores by course is shown in Figure <a href="#fig:barplot">2</a>. There are rather obvious differences in both the distribution of rubric scores and class sizes between semesters.</p>
 <div class="figure" style="text-align: center"><span id="fig:barplot"></span>
-<img src="Report-1710_files/figure-html/barplot-1.png" alt="A barplot showing the distribution of rubric scores broken down by semester." width="576" />
+<img src="Report-1710_files/figure-html/barplot-1.png" alt="A barplot showing the distribution of rubric scores broken down by course." width="576" />
 <p class="caption">
-Figure 2: A barplot showing the distribution of rubric scores broken down by semester.
+Figure 2: A barplot showing the distribution of rubric scores broken down by course.
 </p>
 </div>
 <div class="question">
@@ -266,9 +266,9 @@ What do you think accounts for the variability in scoring from course to course.
 \tag{2}
 \end{equation}\]</span>
 <div class="figure"><span id="fig:forest"></span>
-<img src="Report-1710_files/figure-html/forest-1.png" alt="A forest plot of the average scores for each semester with a weighted mean estimate for the entire period investigated. Error bars indicate the 95% confidence intervals." width="672" />
+<img src="Report-1710_files/figure-html/forest-1.png" alt="A forest plot of the average scores for each course with a weighted mean estimate for the entire period investigated. Error bars indicate the 95% confidence intervals." width="672" />
 <p class="caption">
-Figure 3: A forest plot of the average scores for each semester with a weighted mean estimate for the entire period investigated. Error bars indicate the 95% confidence intervals.
+Figure 3: A forest plot of the average scores for each course with a weighted mean estimate for the entire period investigated. Error bars indicate the 95% confidence intervals.
 </p>
 </div>
 <p>A forest plot of the meta-analysis is shown in Figure <a href="#fig:forest">3</a>. In this representation, each semester is illustrated as a separate line. The mean and 95% confidence intervals for each semester are plotted in the right panel and their associated meta-data are given in the table to the left. The weighted average of all the data is plotted at the bottom of the figure. The width of the diamond indicates the 95% confidence interval.</p>
@@ -441,17 +441,17 @@ Figure 7: A comparison of student performance on QNT3 by student race. Error bar
 <tbody>
 <tr class="odd">
 <td><code>Race/Ethnicity</code></td>
-<td align="right">5</td>
-<td align="right">7.504381</td>
-<td align="right">1.500876</td>
-<td align="right">0.7804591</td>
-<td align="right">0.5639121</td>
+<td align="right">6</td>
+<td align="right">7.980889</td>
+<td align="right">1.330148</td>
+<td align="right">0.6970856</td>
+<td align="right">0.652078</td>
 </tr>
 <tr class="even">
 <td>Residuals</td>
-<td align="right">742</td>
-<td align="right">1426.916742</td>
-<td align="right">1.923068</td>
+<td align="right">608</td>
+<td align="right">1160.158949</td>
+<td align="right">1.908156</td>
 <td align="right">NA</td>
 <td align="right">NA</td>
 </tr>
